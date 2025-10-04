@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameOverUI : MonoBehaviour
 {
@@ -18,7 +19,13 @@ public class GameOverUI : MonoBehaviour
         {
             Show();
 
-            recipesDeliveredText.text = DeliveryManager.Instance.GetSuccessfulRecipesAmount().ToString();
+            int successfulRecipes = DeliveryManager.Instance.GetSuccessfulRecipesAmount();
+            recipesDeliveredText.text = successfulRecipes.ToString();
+
+            if (successfulRecipes > PlayerPrefs.GetInt(SceneManager.GetActiveScene().name+"MaxScore"))
+            {
+                PlayerPrefs.SetInt(SceneManager.GetActiveScene().name+"MaxScore", successfulRecipes);
+            }
         }
         else
         {
