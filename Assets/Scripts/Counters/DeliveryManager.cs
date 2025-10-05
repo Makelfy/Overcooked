@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
 
 public class DeliveryManager : MonoBehaviour
 {
@@ -10,7 +12,7 @@ public class DeliveryManager : MonoBehaviour
     public event EventHandler OnRecipeSucces;
     public event EventHandler OnRecipeFailed;
 
-    public static DeliveryManager Instance { get; set; }
+    public static DeliveryManager Instance { get; private set; }
 
     [SerializeField] private RecipeListSO recipeListSO;
 
@@ -37,7 +39,7 @@ public class DeliveryManager : MonoBehaviour
 
             if (GameHandler.Instance.IsGamePlaying() && waitingRecipeSOList.Count < waitingRecipeMax)
             {
-                RecipeSO waitingRecipeSO = recipeListSO.recipeSOList[UnityEngine.Random.Range(0, recipeListSO.recipeSOList.Count)];
+                RecipeSO waitingRecipeSO = GetWeightedRandomRecipe();
                 waitingRecipeSOList.Add(waitingRecipeSO);
 
                 OnRecipeSpawned?.Invoke(this, EventArgs.Empty);
@@ -67,7 +69,7 @@ public class DeliveryManager : MonoBehaviour
                     }
                     if (!ingredientFound)
                     {
-                        // This recipe ingredient was not foun on the plate
+                        // This recipe ingredient was not found on the plate
                         plateContentsMatchesRecipe = false;
                     }
                 }
@@ -87,7 +89,68 @@ public class DeliveryManager : MonoBehaviour
         // No matches found!
         OnRecipeFailed?.Invoke(this, EventArgs.Empty);
     }
+    
 
+    public RecipeSO GetWeightedRandomRecipe()
+    {
+        string sceneName = SceneManager.GetActiveScene().name;
+        
+        RecipeSO randomRecipe = recipeListSO.recipeSOList[0];
+        
+        Dictionary<RecipeSO, int> adjustedWeights = new Dictionary<RecipeSO, int>();
+        foreach (RecipeSO recipe in recipeListSO.recipeSOList)
+        {
+            int adjustedWeight = recipe.baseWeight;
+            
+            if (sceneName == "GameScene1")
+            {
+                if (recipe.recipeName == "Salad")
+                {
+                    adjustedWeight *= 3;
+                }else if (recipe.recipeName == "Burger")
+                {
+                    adjustedWeight *= 2;
+                }
+            }
+            
+            if (sceneName == "GameScene2")
+            {
+                if (recipe.recipeName == "Burger")
+                {
+                    adjustedWeight *= 2;
+                }else if (recipe.recipeName == "CheeseBurger")
+                {
+                    adjustedWeight *= 2;
+                }
+            }
+            
+            if (sceneName == "GameScene3")
+            {
+                if (recipe.recipeName == "CheeseBurger")
+                {
+                    adjustedWeight *= 2;
+                }else if (recipe.recipeName == "MEGABurger")
+                {
+                    adjustedWeight *= 3;
+                }
+            }
+            
+            adjustedWeights[recipe] = adjustedWeight;
+        }
+        int totalWeight = 0;
+        foreach (int w in adjustedWeights.Values)
+            totalWeight += w;
+            
+        int randomValue = Random.Range(0, totalWeight);
+        int cumulative = 0;
+        foreach (var recipeName in adjustedWeights)
+        {
+            cumulative += recipeName.Value;
+            if (randomValue < cumulative)
+                return recipeName.Key;
+        }
+        return randomRecipe;
+    }
     public List<RecipeSO> GetWaitingRecipeSOList()
     {
         return waitingRecipeSOList;

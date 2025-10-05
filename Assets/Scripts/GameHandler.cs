@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameHandler : MonoBehaviour
 {
@@ -20,8 +21,9 @@ public class GameHandler : MonoBehaviour
     private State state;
     private float countdownToStartTimer = 3f;
     private float gamePlayingTimer;
-    private float gamePlayingTimerMax= 30f;
+    private float gamePlayingTimerMax= 60f;
     private bool isGamePaused = false;
+    
     
     private void Awake()
     {
@@ -32,7 +34,15 @@ public class GameHandler : MonoBehaviour
     private void Start()
     {
         GameInput.Instance.OnPauseAction += GameInput_OnPauseAction;
-        GameInput.Instance.OnInteractAction += GameInput_OnInteractAction; 
+        GameInput.Instance.OnInteractAction += GameInput_OnInteractAction;
+
+        if (SceneManager.GetActiveScene().name == "GameScene2")
+        {
+            gamePlayingTimerMax = 90f;
+        }else if (SceneManager.GetActiveScene().name == "GameScene3")
+        {
+            gamePlayingTimerMax = 120f;
+        }
     }
 
     private void GameInput_OnInteractAction(object sender, EventArgs e)
